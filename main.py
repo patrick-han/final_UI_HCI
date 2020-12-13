@@ -10,6 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Ui_MainWindow(object):
@@ -19,11 +20,14 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
+        # Generator run-through
         self.generateButton = QtWidgets.QPushButton(self.centralwidget)
         self.generateButton.setGeometry(QtCore.QRect(530, 370, 121, 51))
         self.generateButton.setObjectName("generateButton")
         self.generateButton.clicked.connect(self.pressGenerateButton)
 
+
+        # Plot area elements
         self.plotLabel = QtWidgets.QLabel(self.centralwidget)
         self.plotLabel.setGeometry(QtCore.QRect(10, 10, 511, 411))
         self.plotLabel.setText("")
@@ -31,18 +35,24 @@ class Ui_MainWindow(object):
         self.plotLabel.setScaledContents(True) # Fit to label
         self.plotLabel.setObjectName("plotLabel")
 
+        # Plot variables
+        self.x_values = np.linspace(-np.pi, np.pi, 187)
+        self.y_values = np.sin(self.x_values) * 10
+
+
+        # Encoder run-through
         self.verifyButton = QtWidgets.QPushButton(self.centralwidget)
         self.verifyButton.setGeometry(QtCore.QRect(660, 370, 121, 51))
         self.verifyButton.setObjectName("verifyButton")
 
 
-        # Slider and value
+        # slider value elements
         self.sliderLabel = QtWidgets.QLabel(self.centralwidget)
         self.sliderLabel.setGeometry(QtCore.QRect(580, 320, 160, 22))
         self.sliderLabel.setText("Value")
-        # self.sliderLabel.setAlignment(QtCore.AlignCenter)
         self.sliderLabel.setObjectName("sliderLabel")
 
+        # slider1 elements
         self.slider1 = QtWidgets.QSlider(self.centralwidget)
         self.slider1.setGeometry(QtCore.QRect(580, 340, 160, 22))
         self.slider1.setOrientation(QtCore.Qt.Horizontal)
@@ -52,8 +62,8 @@ class Ui_MainWindow(object):
         self.slider1.setTickPosition(QtWidgets.QSlider.TicksBelow)
         self.slider1.setTickInterval(5)
         self.slider1.setObjectName("slider1")
-        # self.slider1.valueChanged.connect(self.slider1ValueChange) # Update label when value changed
-        self.slider1.sliderReleased.connect(self.slider1ValueChange) # Update label only when slider released
+        self.slider1.valueChanged.connect(self.slider1ValueChange) # Update label when value changed
+        self.slider1.sliderReleased.connect(self.slider1Released) # Update label only when slider released
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -73,26 +83,43 @@ class Ui_MainWindow(object):
         self.generateButton.setText(_translate("MainWindow", "Generate"))
         self.verifyButton.setText(_translate("MainWindow", "Verify"))
 
+    """
+    Call the Generator and generate a signal, plot the signal
+    """
     def pressGenerateButton(self):
+        print("Pressed Generate")
         # TODO: Call generator function
 
         # TODO: Plot and display generator points
         self.plotPoints()
-        self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
+
+    """
+    Call the Encoder on the current signal state, and then verify the signal with the Generator,
+    and then plot the verified signal
+    """
+    def pressVerifyButton(self):
+        print("Pressed Verify")
+        pass
+        # TODO: Call encoder on current signal
+        # encoderOutput = Encoder()
+        # TODO: Call generator on encoderOutput, modify global x, y values
+        # plotPoints()
 
     def slider1ValueChange(self):
         val = self.slider1.value()
         self.sliderLabel.setText(str(val))
+    def slider1Released(self):
+        self.y_values[1] += 1
+        self.plotPoints()
 
+    """
+    Take global x, y plot values, create and save a plt plot and show the plot on the plotLabel
+    """
     def plotPoints(self):
-        pointsFile = open("datapoints.txt")
-        l = pointsFile.readlines()
-        x = [int(i) for i in l[0].split(",")]
-        y = [int(i) for i in l[1].split(",")]
-        plt.plot(x,y)
+        plt.scatter(self.x_values, self.y_values)
         plt.savefig("generatedPlot.png")
-
-        # plt.plot()
+        plt.close()
+        self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
 
 
 if __name__ == "__main__":
