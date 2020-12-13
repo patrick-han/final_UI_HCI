@@ -9,6 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import matplotlib.pyplot as plt
 
 
 class Ui_MainWindow(object):
@@ -27,6 +28,7 @@ class Ui_MainWindow(object):
         self.plotLabel.setGeometry(QtCore.QRect(10, 10, 511, 411))
         self.plotLabel.setText("")
         self.plotLabel.setPixmap(QtGui.QPixmap("test.png"))
+        self.plotLabel.setScaledContents(True) # Fit to label
         self.plotLabel.setObjectName("plotLabel")
 
         self.verifyButton = QtWidgets.QPushButton(self.centralwidget)
@@ -72,11 +74,25 @@ class Ui_MainWindow(object):
         self.verifyButton.setText(_translate("MainWindow", "Verify"))
 
     def pressGenerateButton(self):
-        self.plotLabel.setPixmap(QtGui.QPixmap("test2.jpg"))
+        # TODO: Call generator function
+
+        # TODO: Plot and display generator points
+        self.plotPoints()
+        self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
 
     def slider1ValueChange(self):
         val = self.slider1.value()
         self.sliderLabel.setText(str(val))
+
+    def plotPoints(self):
+        pointsFile = open("datapoints.txt")
+        l = pointsFile.readlines()
+        x = [int(i) for i in l[0].split(",")]
+        y = [int(i) for i in l[1].split(",")]
+        plt.plot(x,y)
+        plt.savefig("generatedPlot.png")
+
+        # plt.plot()
 
 
 if __name__ == "__main__":
