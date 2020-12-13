@@ -11,36 +11,47 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(800, 489)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
-        # Generate Button
         self.generateButton = QtWidgets.QPushButton(self.centralwidget)
-        self.generateButton.setGeometry(QtCore.QRect(570, 100, 121, 51))
+        self.generateButton.setGeometry(QtCore.QRect(530, 370, 121, 51))
         self.generateButton.setObjectName("generateButton")
-        self.generateButton.clicked.connect(self.generateButtonClicked)
+        self.generateButton.clicked.connect(self.pressGenerateButton)
 
-        self.mainLabel = QtWidgets.QLabel(self.centralwidget)
-        self.mainLabel.setGeometry(QtCore.QRect(120, 170, 281, 211))
-        self.mainLabel.setObjectName("mainLabel")
+        self.plotLabel = QtWidgets.QLabel(self.centralwidget)
+        self.plotLabel.setGeometry(QtCore.QRect(10, 10, 511, 411))
+        self.plotLabel.setText("")
+        self.plotLabel.setPixmap(QtGui.QPixmap("test.png"))
+        self.plotLabel.setObjectName("plotLabel")
 
-        # Verify Button
         self.verifyButton = QtWidgets.QPushButton(self.centralwidget)
-        self.verifyButton.setGeometry(QtCore.QRect(570, 360, 121, 51))
+        self.verifyButton.setGeometry(QtCore.QRect(660, 370, 121, 51))
         self.verifyButton.setObjectName("verifyButton")
-        self.verifyButton.clicked.connect(self.verifyButtonClicked)
+
+
+        # Slider and value
+        self.sliderLabel = QtWidgets.QLabel(self.centralwidget)
+        self.sliderLabel.setGeometry(QtCore.QRect(580, 320, 160, 22))
+        self.sliderLabel.setText("Value")
+        # self.sliderLabel.setAlignment(QtCore.AlignCenter)
+        self.sliderLabel.setObjectName("sliderLabel")
 
         self.slider1 = QtWidgets.QSlider(self.centralwidget)
-        self.slider1.setGeometry(QtCore.QRect(540, 210, 160, 22))
+        self.slider1.setGeometry(QtCore.QRect(580, 340, 160, 22))
         self.slider1.setOrientation(QtCore.Qt.Horizontal)
+        self.slider1.setMinimum(0)
+        self.slider1.setMaximum(20)
+        self.slider1.setValue(0)
+        self.slider1.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self.slider1.setTickInterval(5)
         self.slider1.setObjectName("slider1")
-
+        # self.slider1.valueChanged.connect(self.slider1ValueChange) # Update label when value changed
+        self.slider1.sliderReleased.connect(self.slider1ValueChange) # Update label only when slider released
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -58,14 +69,14 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.generateButton.setText(_translate("MainWindow", "Generate"))
-        self.mainLabel.setText(_translate("MainWindow", "Hello my name is Patrick"))
         self.verifyButton.setText(_translate("MainWindow", "Verify"))
 
-    def generateButtonClicked(self):
-        print("Generate Clicked")
+    def pressGenerateButton(self):
+        self.plotLabel.setPixmap(QtGui.QPixmap("test2.jpg"))
 
-    def verifyButtonClicked(self):
-        print("Verify Clicked")
+    def slider1ValueChange(self):
+        val = self.slider1.value()
+        self.sliderLabel.setText(str(val))
 
 
 if __name__ == "__main__":
