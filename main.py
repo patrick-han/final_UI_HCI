@@ -11,6 +11,14 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+
+# Encoder imports
+from mymodel import LSTMEncoder
+from mymodel import AE_opt
+import torch
+import torch.optim as optim
+import torch.nn.functional as F
 
 
 class Ui_MainWindow(object):
@@ -36,21 +44,33 @@ class Ui_MainWindow(object):
         self.plotLabel.setObjectName("plotLabel")
 
         # Plot variables
-        self.x_values = np.linspace(-np.pi, np.pi, 187)
-        self.y_values = np.sin(self.x_values) * 10
+        df = pd.read_csv("testingData/normal_valid.csv")
+        arr = df.iloc[0][:-1]
+        # print(arr.shape)
+        self.x_values = np.linspace(0, arr.shape[0],arr.shape[0])
+        self.y_values = arr
+        # self.x_values = np.linspace(-np.pi, np.pi, 187)
+        # self.y_values = np.sin(self.x_values) * 10
 
 
         # Encoder run-through
         self.verifyButton = QtWidgets.QPushButton(self.centralwidget)
         self.verifyButton.setGeometry(QtCore.QRect(660, 370, 121, 51))
         self.verifyButton.setObjectName("verifyButton")
+        self.verifyButton.clicked.connect(self.pressVerifyButton)
+        # Encoder setup
+        self.autoEncoder_model = LSTMEncoder()
+        self.autoEncoder_optim = optim.Adam(self.autoEncoder_model.parameters(), lr=AE_opt.lr)
+        self.autoEncoder_checkpoint = torch.load("./kllstm_epoch_999.pt", map_location=torch.device('cpu'))
+        self.autoEncoder_model.load_state_dict(self.autoEncoder_checkpoint)
+        self.autoEncoder_model.eval()
 
 
         # slider value elements
-        self.sliderLabel = QtWidgets.QLabel(self.centralwidget)
-        self.sliderLabel.setGeometry(QtCore.QRect(580, 320, 160, 22))
-        self.sliderLabel.setText("Value")
-        self.sliderLabel.setObjectName("sliderLabel")
+        self.sliderLabel1 = QtWidgets.QLabel(self.centralwidget)
+        self.sliderLabel1.setGeometry(QtCore.QRect(580, 320, 160, 22))
+        self.sliderLabel1.setText("Value")
+        self.sliderLabel1.setObjectName("sliderLabel")
 
         # slider1 elements
         self.slider1 = QtWidgets.QSlider(self.centralwidget)
@@ -99,17 +119,45 @@ class Ui_MainWindow(object):
     """
     def pressVerifyButton(self):
         print("Pressed Verify")
-        pass
+
+        # TESTING AE CODE
+        # Inference Example loading directly from csv
+        test_values = self.y_values
+
+        test_values = np.expand_dims(test_values, axis=0)
+        test_values = torch.from_numpy(test_values).float()
+        print(test_values.shape)
+        encode_out = self.autoEncoder_model.Encoder(test_values)
+        print("Encoded")
+
+        # Decode
+        decode_out = self.autoEncoder_model.Decoder(encode_out[0], encode_out[1])
+        print("Decoded shape before flip: " + str(decode_out.shape))
+
+        # Flip signal and stuff
+        decode_out = torch.flip(decode_out, dims=[1]), torch.log(F.softmax(encode_out[0], dim=1))
+        decode_out_forplot = decode_out[0].detach().numpy().flatten()
+        print(decode_out_forplot.shape)
+        print("Decoded")
+        self.y_values = decode_out_forplot # Set global for plotting
+        self.plotPoints()
+
+        # # Plot original
+        # plt.plot(example.numpy().flatten())
+        # # Plot decoded
+        # plt.plot(decode_out[0].detach().numpy()[0])
+
         # TODO: Call encoder on current signal
         # encoderOutput = Encoder()
         # TODO: Call generator on encoderOutput, modify global x, y values
         # plotPoints()
 
     def slider1ValueChange(self):
-        val = self.slider1.value()
-        self.sliderLabel.setText(str(val))
+        val = self.slider1.value() # Grab the slider value
+        self.sliderLabel1.setText(str(val)) # set the slider label text
+
     def slider1Released(self):
-        self.y_values[1] += 1
+        self.y_values[4] += 0.1
         self.plotPoints()
 
     """
@@ -117,10 +165,13 @@ class Ui_MainWindow(object):
     """
     def plotPoints(self):
         plt.scatter(self.x_values, self.y_values)
+        plt.plot(self.x_values, self.y_values)
         plt.savefig("generatedPlot.png")
         plt.close()
         self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
 
+def except_hook(cls, exception, traceback): # Restore errors, DELETE LATER?
+    sys.__excepthook__(cls, exception, traceback)
 
 if __name__ == "__main__":
     import sys
@@ -129,4 +180,7 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
+
+    sys.excepthook = except_hook # Restore errors, DELETE LATER?
+
     sys.exit(app.exec_())
