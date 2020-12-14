@@ -34,7 +34,6 @@ class Ui_MainWindow(object):
         self.generateButton.setObjectName("generateButton")
         self.generateButton.clicked.connect(self.pressGenerateButton)
 
-
         # Plot area elements
         self.plotLabel = QtWidgets.QLabel(self.centralwidget)
         self.plotLabel.setGeometry(QtCore.QRect(10, 10, 511, 411))
@@ -46,11 +45,8 @@ class Ui_MainWindow(object):
         # Plot variables
         df = pd.read_csv("testingData/normal_valid.csv")
         arr = df.iloc[0][:-1]
-        # print(arr.shape)
         self.x_values = np.linspace(0, arr.shape[0],arr.shape[0])
         self.y_values = arr
-        # self.x_values = np.linspace(-np.pi, np.pi, 187)
-        # self.y_values = np.sin(self.x_values) * 10
 
 
         # Encoder run-through
@@ -74,7 +70,7 @@ class Ui_MainWindow(object):
 
         # slider1 elements: Slider allows you to select individual datapoints
         self.slider1 = QtWidgets.QSlider(self.centralwidget)
-        self.slider1.setGeometry(QtCore.QRect(580, 340, 160, 22))
+        self.slider1.setGeometry(QtCore.QRect(530, 340, 250, 22))
         self.slider1.setOrientation(QtCore.Qt.Horizontal)
         self.slider1.setMinimum(0)
         self.slider1.setMaximum(186) # Select any of the 186 datapoints
@@ -86,6 +82,20 @@ class Ui_MainWindow(object):
         self.slider1.sliderReleased.connect(self.slider1Released) # Update label only when slider released
 
         self.currentlySelectedPoint = 0 # The currently selected point will be highlighted in red on the scatter
+
+        # Buttons that allow you to adjust the height of the selected point
+        self.upAdjustButton = QtWidgets.QPushButton(self.centralwidget)
+        self.upAdjustButton.setGeometry(QtCore.QRect(530, 230, 30, 30))
+        self.upAdjustButton.setObjectName("upAdjustButton")
+        self.upAdjustButton.setText("Inc.")
+        self.upAdjustButton.clicked.connect(self.pressUpAdjustButton)
+
+        self.downAdjustButton = QtWidgets.QPushButton(self.centralwidget)
+        self.downAdjustButton.setGeometry(QtCore.QRect(530, 270, 30, 30))
+        self.downAdjustButton.setObjectName("downAdjustButton")
+        self.downAdjustButton.setText("Dec.")
+        self.downAdjustButton.clicked.connect(self.pressDownAdjustButton)
+
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -166,6 +176,14 @@ class Ui_MainWindow(object):
 
     def slider1Released(self):
         # self.y_values[self.currentlySelectedPoint] += 0.1
+        self.plotPoints()
+
+    def pressUpAdjustButton(self):
+        self.y_values[self.currentlySelectedPoint] += 0.1
+        self.plotPoints()
+
+    def pressDownAdjustButton(self):
+        self.y_values[self.currentlySelectedPoint] -= 0.1
         self.plotPoints()
 
     """
