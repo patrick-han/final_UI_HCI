@@ -24,19 +24,19 @@ import torch.nn.functional as F
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 489)
+        MainWindow.resize(800, 600)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
         # Generator run-through
         self.generateButton = QtWidgets.QPushButton(self.centralwidget)
-        self.generateButton.setGeometry(QtCore.QRect(530, 370, 121, 51))
+        self.generateButton.setGeometry(QtCore.QRect(530, 470, 121, 51))
         self.generateButton.setObjectName("generateButton")
         self.generateButton.clicked.connect(self.pressGenerateButton)
 
         # Plot area elements
         self.plotLabel = QtWidgets.QLabel(self.centralwidget)
-        self.plotLabel.setGeometry(QtCore.QRect(10, 10, 511, 411))
+        self.plotLabel.setGeometry(QtCore.QRect(10, 110, 511, 411))
         self.plotLabel.setText("")
         self.plotLabel.setPixmap(QtGui.QPixmap("test.png"))
         self.plotLabel.setScaledContents(True) # Fit to label
@@ -51,7 +51,7 @@ class Ui_MainWindow(object):
 
         # Encoder run-through
         self.verifyButton = QtWidgets.QPushButton(self.centralwidget)
-        self.verifyButton.setGeometry(QtCore.QRect(660, 370, 121, 51))
+        self.verifyButton.setGeometry(QtCore.QRect(660, 470, 121, 51))
         self.verifyButton.setObjectName("verifyButton")
         self.verifyButton.clicked.connect(self.pressVerifyButton)
         # Encoder setup
@@ -63,12 +63,12 @@ class Ui_MainWindow(object):
 
         # slider1 elements: Slider allows you to select individual datapoints
         self.sliderLabel1 = QtWidgets.QLabel(self.centralwidget)
-        self.sliderLabel1.setGeometry(QtCore.QRect(530, 320, 160, 22))
+        self.sliderLabel1.setGeometry(QtCore.QRect(530, 420, 160, 22))
         self.sliderLabel1.setText("Element Selected: 0")
         self.sliderLabel1.setObjectName("sliderLabel")
 
         self.slider1 = QtWidgets.QSlider(self.centralwidget)
-        self.slider1.setGeometry(QtCore.QRect(530, 340, 250, 22))
+        self.slider1.setGeometry(QtCore.QRect(530, 440, 250, 22))
         self.slider1.setOrientation(QtCore.Qt.Horizontal)
         self.slider1.setMinimum(0)
         self.slider1.setMaximum(186) # Select any of the 187 datapoints
@@ -81,12 +81,12 @@ class Ui_MainWindow(object):
 
         # sliderSpread elements: Slider allows you to select a spread of datapoints
         self.sliderSpreadLabel = QtWidgets.QLabel(self.centralwidget)
-        self.sliderSpreadLabel.setGeometry(QtCore.QRect(530, 270, 160, 22))
+        self.sliderSpreadLabel.setGeometry(QtCore.QRect(530, 370, 160, 22))
         self.sliderSpreadLabel.setText("Spread: 0")
         self.sliderSpreadLabel.setObjectName("sliderSpreadLabel")
 
         self.sliderSpread = QtWidgets.QSlider(self.centralwidget)
-        self.sliderSpread.setGeometry(QtCore.QRect(530, 290, 250, 22))
+        self.sliderSpread.setGeometry(QtCore.QRect(530, 390, 250, 22))
         self.sliderSpread.setOrientation(QtCore.Qt.Horizontal)
         self.sliderSpread.setMinimum(0)
         self.sliderSpread.setMaximum(10)  # Select up to a spread of 5 on each side
@@ -104,24 +104,24 @@ class Ui_MainWindow(object):
         self.adjustAmt = 0.0
 
         self.upAdjustButton = QtWidgets.QPushButton(self.centralwidget)
-        self.upAdjustButton.setGeometry(QtCore.QRect(530, 30, 40, 30))
+        self.upAdjustButton.setGeometry(QtCore.QRect(530, 130, 40, 30))
         self.upAdjustButton.setObjectName("upAdjustButton")
         self.upAdjustButton.clicked.connect(self.pressUpAdjustButton)
         self.upAdjustButton.setIcon(QtGui.QIcon('icons/up_arrow.png'))
 
         self.downAdjustButton = QtWidgets.QPushButton(self.centralwidget)
-        self.downAdjustButton.setGeometry(QtCore.QRect(530, 70, 40, 30))
+        self.downAdjustButton.setGeometry(QtCore.QRect(530, 170, 40, 30))
         self.downAdjustButton.setObjectName("downAdjustButton")
         self.downAdjustButton.clicked.connect(self.pressDownAdjustButton)
         self.downAdjustButton.setIcon(QtGui.QIcon('icons/down_arrow.png'))
 
         self.sliderAdjustLabel = QtWidgets.QLabel(self.centralwidget)
-        self.sliderAdjustLabel.setGeometry(QtCore.QRect(530, 220, 160, 22))
+        self.sliderAdjustLabel.setGeometry(QtCore.QRect(530, 320, 160, 22))
         self.sliderAdjustLabel.setText("Inc/Dec Amount: 0.0")
         self.sliderAdjustLabel.setObjectName("sliderAdjustLabel")
 
         self.sliderAdjust = QtWidgets.QSlider(self.centralwidget)
-        self.sliderAdjust.setGeometry(QtCore.QRect(530, 240, 250, 22))
+        self.sliderAdjust.setGeometry(QtCore.QRect(530, 340, 250, 22))
         self.sliderAdjust.setOrientation(QtCore.Qt.Horizontal)
         self.sliderAdjust.setMinimum(0)
         self.sliderAdjust.setMaximum(10)  # Select up to increment of 10 (convert to 1.0)
