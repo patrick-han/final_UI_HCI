@@ -64,8 +64,8 @@ class Ui_MainWindow(object):
 
         # slider value elements
         self.sliderLabel1 = QtWidgets.QLabel(self.centralwidget)
-        self.sliderLabel1.setGeometry(QtCore.QRect(580, 320, 160, 22))
-        self.sliderLabel1.setText("Value")
+        self.sliderLabel1.setGeometry(QtCore.QRect(530, 320, 160, 22))
+        self.sliderLabel1.setText("Element Selected: 0")
         self.sliderLabel1.setObjectName("sliderLabel")
 
         # slider1 elements: Slider allows you to select individual datapoints
@@ -73,7 +73,7 @@ class Ui_MainWindow(object):
         self.slider1.setGeometry(QtCore.QRect(530, 340, 250, 22))
         self.slider1.setOrientation(QtCore.Qt.Horizontal)
         self.slider1.setMinimum(0)
-        self.slider1.setMaximum(186) # Select any of the 186 datapoints
+        self.slider1.setMaximum(186) # Select any of the 187 datapoints
         self.slider1.setValue(0)
         self.slider1.setTickPosition(QtWidgets.QSlider.TicksBelow)
         self.slider1.setTickInterval(5)
@@ -81,7 +81,21 @@ class Ui_MainWindow(object):
         self.slider1.valueChanged.connect(self.slider1ValueChange) # Update label when value changed
         self.slider1.sliderReleased.connect(self.slider1Released) # Update label only when slider released
 
+        # sliderSpread elements: Slider allows you to select a spread of datapoints
+        self.sliderSpread = QtWidgets.QSlider(self.centralwidget)
+        self.sliderSpread.setGeometry(QtCore.QRect(530, 200, 250, 22))
+        self.sliderSpread.setOrientation(QtCore.Qt.Horizontal)
+        self.sliderSpread.setMinimum(0)
+        self.sliderSpread.setMaximum(5)  # Select up to a spread of 5 on each side
+        self.sliderSpread.setValue(0)
+        self.sliderSpread.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self.sliderSpread.setTickInterval(1)
+        self.sliderSpread.setObjectName("sliderSpread")
+        self.sliderSpread.valueChanged.connect(self.sliderSpreadValueChange)  # Update label when value changed
+        # self.sliderSpread.sliderReleased.connect(self.sliderSpread1Released)  # Update label only when slider released
+
         self.currentlySelectedPoint = 0 # The currently selected point will be highlighted in red on the scatter
+        self.spreadPoints = [0]
 
         # Buttons that allow you to adjust the height of the selected point
         self.upAdjustButton = QtWidgets.QPushButton(self.centralwidget)
@@ -170,20 +184,28 @@ class Ui_MainWindow(object):
 
     def slider1ValueChange(self):
         val = self.slider1.value() # Grab the slider value
-        self.sliderLabel1.setText(str(val)) # Set the slider label text
+        self.sliderLabel1.setText("Element selected: " + str(val)) # Set the slider label text
         self.currentlySelectedPoint = val # Set currently selected point
-        self.plotPoints()
+        self.sliderSpreadValueChange()
 
     def slider1Released(self):
-        # self.y_values[self.currentlySelectedPoint] += 0.1
+        self.sliderSpreadValueChange() # Update spread values if we move which point is being selected
+        self.plotPoints()
+
+    def sliderSpreadValueChange(self):
+        # Clamp to points >= 0 or <= 186
+        self.spreadPoints = [i for i in range(self.currentlySelectedPoint - self.sliderSpread.value(), self.currentlySelectedPoint + self.sliderSpread.value() + 1) if i >= 0 and i <= 186]
+        print(self.spreadPoints)
         self.plotPoints()
 
     def pressUpAdjustButton(self):
-        self.y_values[self.currentlySelectedPoint] += 0.1
+        for point in self.spreadPoints:
+            self.y_values[point] += 0.1
         self.plotPoints()
 
     def pressDownAdjustButton(self):
-        self.y_values[self.currentlySelectedPoint] -= 0.1
+        for point in self.spreadPoints:
+            self.y_values[point] -= 0.1
         self.plotPoints()
 
     """
@@ -191,7 +213,8 @@ class Ui_MainWindow(object):
     """
     def plotPoints(self):
         color_arr = [(0,0,1)] * 187 # Color all points in blue first
-        color_arr[self.currentlySelectedPoint] = (1,0,0) # Color selected point in red
+        for point in self.spreadPoints:
+            color_arr[point] = (1,0,0) # Color selected point in red
         plt.scatter(self.x_values, self.y_values, c = color_arr)
         plt.plot(self.x_values, self.y_values)
         plt.savefig("generatedPlot.png")
