@@ -43,10 +43,10 @@ class Ui_MainWindow(object):
         self.plotLabel.setObjectName("plotLabel")
 
         # Plot variables
-        df = pd.read_csv("testingData/normal_valid.csv")
-        arr = df.iloc[0][:-1]
-        self.x_values = np.linspace(0, arr.shape[0],arr.shape[0])
-        self.y_values = arr
+        df = pd.read_csv("testingData/normal_valid.csv") # TEMP
+        arr = df.iloc[0][:-1] # TEMP
+        self.x_values = np.linspace(0, arr.shape[0],arr.shape[0]) # TEMP
+        self.y_values = arr  # TEMP
 
 
         # Encoder run-through
@@ -101,20 +101,35 @@ class Ui_MainWindow(object):
         self.spreadPoints = [0]
 
         # Buttons that allow you to adjust the height of the selected point
+        self.adjustAmt = 0.0
+
         self.upAdjustButton = QtWidgets.QPushButton(self.centralwidget)
         self.upAdjustButton.setGeometry(QtCore.QRect(530, 30, 40, 30))
         self.upAdjustButton.setObjectName("upAdjustButton")
-        # self.upAdjustButton.setText("Inc.")
         self.upAdjustButton.clicked.connect(self.pressUpAdjustButton)
         self.upAdjustButton.setIcon(QtGui.QIcon('icons/up_arrow.png'))
 
         self.downAdjustButton = QtWidgets.QPushButton(self.centralwidget)
         self.downAdjustButton.setGeometry(QtCore.QRect(530, 70, 40, 30))
         self.downAdjustButton.setObjectName("downAdjustButton")
-        # self.downAdjustButton.setText("Dec.")
         self.downAdjustButton.clicked.connect(self.pressDownAdjustButton)
         self.downAdjustButton.setIcon(QtGui.QIcon('icons/down_arrow.png'))
 
+        self.sliderAdjustLabel = QtWidgets.QLabel(self.centralwidget)
+        self.sliderAdjustLabel.setGeometry(QtCore.QRect(530, 220, 160, 22))
+        self.sliderAdjustLabel.setText("Inc/Dec Amount: 0.0")
+        self.sliderAdjustLabel.setObjectName("sliderAdjustLabel")
+
+        self.sliderAdjust = QtWidgets.QSlider(self.centralwidget)
+        self.sliderAdjust.setGeometry(QtCore.QRect(530, 240, 250, 22))
+        self.sliderAdjust.setOrientation(QtCore.Qt.Horizontal)
+        self.sliderAdjust.setMinimum(0)
+        self.sliderAdjust.setMaximum(10)  # Select up to increment of 10 (convert to 1.0)
+        self.sliderAdjust.setValue(0)
+        self.sliderAdjust.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self.sliderAdjust.setTickInterval(1) # 1 = 0.1 increment
+        self.sliderAdjust.setObjectName("sliderAdjust")
+        self.sliderAdjust.valueChanged.connect(self.sliderAdjustValueChange)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -206,13 +221,20 @@ class Ui_MainWindow(object):
 
     def pressUpAdjustButton(self):
         for point in self.spreadPoints:
-            self.y_values[point] += 0.1
+            self.y_values[point] += self.adjustAmt
         self.plotPoints()
 
     def pressDownAdjustButton(self):
         for point in self.spreadPoints:
-            self.y_values[point] -= 0.1
+            self.y_values[point] -= self.adjustAmt
         self.plotPoints()
+
+    """
+    Adjust slider changes the amount to increment/decrement by
+    """
+    def sliderAdjustValueChange(self):
+        self.adjustAmt = self.sliderAdjust.value() * 0.1
+        self.sliderAdjustLabel.setText("Inc/Dec Amount: " + str(self.adjustAmt))
 
     """
     Take global x, y plot values, create and save a plt plot and show the plot on the plotLabel
