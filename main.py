@@ -89,7 +89,7 @@ class Ui_MainWindow(object):
         self.sliderSpread.setGeometry(QtCore.QRect(530, 290, 250, 22))
         self.sliderSpread.setOrientation(QtCore.Qt.Horizontal)
         self.sliderSpread.setMinimum(0)
-        self.sliderSpread.setMaximum(5)  # Select up to a spread of 5 on each side
+        self.sliderSpread.setMaximum(10)  # Select up to a spread of 5 on each side
         self.sliderSpread.setValue(0)
         self.sliderSpread.setTickPosition(QtWidgets.QSlider.TicksBelow)
         self.sliderSpread.setTickInterval(1)
