@@ -102,16 +102,18 @@ class Ui_MainWindow(object):
 
         # Buttons that allow you to adjust the height of the selected point
         self.upAdjustButton = QtWidgets.QPushButton(self.centralwidget)
-        self.upAdjustButton.setGeometry(QtCore.QRect(530, 30, 30, 30))
+        self.upAdjustButton.setGeometry(QtCore.QRect(530, 30, 40, 30))
         self.upAdjustButton.setObjectName("upAdjustButton")
-        self.upAdjustButton.setText("Inc.")
+        # self.upAdjustButton.setText("Inc.")
         self.upAdjustButton.clicked.connect(self.pressUpAdjustButton)
+        self.upAdjustButton.setIcon(QtGui.QIcon('icons/up_arrow.png'))
 
         self.downAdjustButton = QtWidgets.QPushButton(self.centralwidget)
-        self.downAdjustButton.setGeometry(QtCore.QRect(530, 70, 30, 30))
+        self.downAdjustButton.setGeometry(QtCore.QRect(530, 70, 40, 30))
         self.downAdjustButton.setObjectName("downAdjustButton")
-        self.downAdjustButton.setText("Dec.")
+        # self.downAdjustButton.setText("Dec.")
         self.downAdjustButton.clicked.connect(self.pressDownAdjustButton)
+        self.downAdjustButton.setIcon(QtGui.QIcon('icons/down_arrow.png'))
 
 
         MainWindow.setCentralWidget(self.centralwidget)
