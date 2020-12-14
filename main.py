@@ -61,14 +61,12 @@ class Ui_MainWindow(object):
         self.autoEncoder_model.load_state_dict(self.autoEncoder_checkpoint)
         self.autoEncoder_model.eval()
 
-
-        # slider value elements
+        # slider1 elements: Slider allows you to select individual datapoints
         self.sliderLabel1 = QtWidgets.QLabel(self.centralwidget)
         self.sliderLabel1.setGeometry(QtCore.QRect(530, 320, 160, 22))
         self.sliderLabel1.setText("Element Selected: 0")
         self.sliderLabel1.setObjectName("sliderLabel")
 
-        # slider1 elements: Slider allows you to select individual datapoints
         self.slider1 = QtWidgets.QSlider(self.centralwidget)
         self.slider1.setGeometry(QtCore.QRect(530, 340, 250, 22))
         self.slider1.setOrientation(QtCore.Qt.Horizontal)
@@ -82,8 +80,13 @@ class Ui_MainWindow(object):
         self.slider1.sliderReleased.connect(self.slider1Released) # Update label only when slider released
 
         # sliderSpread elements: Slider allows you to select a spread of datapoints
+        self.sliderSpreadLabel = QtWidgets.QLabel(self.centralwidget)
+        self.sliderSpreadLabel.setGeometry(QtCore.QRect(530, 270, 160, 22))
+        self.sliderSpreadLabel.setText("Spread: 0")
+        self.sliderSpreadLabel.setObjectName("sliderSpreadLabel")
+
         self.sliderSpread = QtWidgets.QSlider(self.centralwidget)
-        self.sliderSpread.setGeometry(QtCore.QRect(530, 200, 250, 22))
+        self.sliderSpread.setGeometry(QtCore.QRect(530, 290, 250, 22))
         self.sliderSpread.setOrientation(QtCore.Qt.Horizontal)
         self.sliderSpread.setMinimum(0)
         self.sliderSpread.setMaximum(5)  # Select up to a spread of 5 on each side
@@ -99,13 +102,13 @@ class Ui_MainWindow(object):
 
         # Buttons that allow you to adjust the height of the selected point
         self.upAdjustButton = QtWidgets.QPushButton(self.centralwidget)
-        self.upAdjustButton.setGeometry(QtCore.QRect(530, 230, 30, 30))
+        self.upAdjustButton.setGeometry(QtCore.QRect(530, 30, 30, 30))
         self.upAdjustButton.setObjectName("upAdjustButton")
         self.upAdjustButton.setText("Inc.")
         self.upAdjustButton.clicked.connect(self.pressUpAdjustButton)
 
         self.downAdjustButton = QtWidgets.QPushButton(self.centralwidget)
-        self.downAdjustButton.setGeometry(QtCore.QRect(530, 270, 30, 30))
+        self.downAdjustButton.setGeometry(QtCore.QRect(530, 70, 30, 30))
         self.downAdjustButton.setObjectName("downAdjustButton")
         self.downAdjustButton.setText("Dec.")
         self.downAdjustButton.clicked.connect(self.pressDownAdjustButton)
@@ -195,7 +198,8 @@ class Ui_MainWindow(object):
     def sliderSpreadValueChange(self):
         # Clamp to points >= 0 or <= 186
         self.spreadPoints = [i for i in range(self.currentlySelectedPoint - self.sliderSpread.value(), self.currentlySelectedPoint + self.sliderSpread.value() + 1) if i >= 0 and i <= 186]
-        print(self.spreadPoints)
+        # print(self.spreadPoints)
+        self.sliderSpreadLabel.setText("Spread: " + str(self.sliderSpread.value()))
         self.plotPoints()
 
     def pressUpAdjustButton(self):
