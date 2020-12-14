@@ -72,18 +72,20 @@ class Ui_MainWindow(object):
         self.sliderLabel1.setText("Value")
         self.sliderLabel1.setObjectName("sliderLabel")
 
-        # slider1 elements
+        # slider1 elements: Slider allows you to select individual datapoints
         self.slider1 = QtWidgets.QSlider(self.centralwidget)
         self.slider1.setGeometry(QtCore.QRect(580, 340, 160, 22))
         self.slider1.setOrientation(QtCore.Qt.Horizontal)
         self.slider1.setMinimum(0)
-        self.slider1.setMaximum(20)
+        self.slider1.setMaximum(186) # Select any of the 186 datapoints
         self.slider1.setValue(0)
         self.slider1.setTickPosition(QtWidgets.QSlider.TicksBelow)
         self.slider1.setTickInterval(5)
         self.slider1.setObjectName("slider1")
         self.slider1.valueChanged.connect(self.slider1ValueChange) # Update label when value changed
         self.slider1.sliderReleased.connect(self.slider1Released) # Update label only when slider released
+
+        self.currentlySelectedPoint = 0 # The currently selected point will be highlighted in red on the scatter
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -126,21 +128,25 @@ class Ui_MainWindow(object):
 
         test_values = np.expand_dims(test_values, axis=0)
         test_values = torch.from_numpy(test_values).float()
-        print(test_values.shape)
         encode_out = self.autoEncoder_model.Encoder(test_values)
-        print("Encoded")
+        # print("Encoded")
 
         # Decode
         decode_out = self.autoEncoder_model.Decoder(encode_out[0], encode_out[1])
-        print("Decoded shape before flip: " + str(decode_out.shape))
+        # print("Decoded shape before flip: " + str(decode_out.shape))
 
         # Flip signal and stuff
         decode_out = torch.flip(decode_out, dims=[1]), torch.log(F.softmax(encode_out[0], dim=1))
-        decode_out_forplot = decode_out[0].detach().numpy().flatten()
-        print(decode_out_forplot.shape)
-        print("Decoded")
+        decode_out_forplot = decode_out[0].detach().numpy().flatten() # Convert to a numpy array
         self.y_values = decode_out_forplot # Set global for plotting
-        self.plotPoints()
+        # self.plotPoints()
+
+        ##DEELELTLE
+        # plt.plot(self.x_values, self.y_values)
+        # plt.plot(self.x_values, decode_out_forplot)
+        # plt.savefig("generatedPlot.png")
+        # plt.close()
+        # self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
 
         # # Plot original
         # plt.plot(example.numpy().flatten())
@@ -154,17 +160,21 @@ class Ui_MainWindow(object):
 
     def slider1ValueChange(self):
         val = self.slider1.value() # Grab the slider value
-        self.sliderLabel1.setText(str(val)) # set the slider label text
+        self.sliderLabel1.setText(str(val)) # Set the slider label text
+        self.currentlySelectedPoint = val # Set currently selected point
+        self.plotPoints()
 
     def slider1Released(self):
-        self.y_values[4] += 0.1
+        # self.y_values[self.currentlySelectedPoint] += 0.1
         self.plotPoints()
 
     """
     Take global x, y plot values, create and save a plt plot and show the plot on the plotLabel
     """
     def plotPoints(self):
-        plt.scatter(self.x_values, self.y_values)
+        color_arr = [(0,0,1)] * 187 # Color all points in blue first
+        color_arr[self.currentlySelectedPoint] = (1,0,0) # Color selected point in red
+        plt.scatter(self.x_values, self.y_values, c = color_arr)
         plt.plot(self.x_values, self.y_values)
         plt.savefig("generatedPlot.png")
         plt.close()
