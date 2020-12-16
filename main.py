@@ -13,6 +13,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+# Generator Imports
+import tensorflow as tf
+import sklearn.preprocessing
+import scipy.ndimage
+
 # Encoder imports
 from mymodel import LSTMEncoder
 from mymodel import AE_opt
@@ -33,20 +38,25 @@ class Ui_MainWindow(object):
         self.generateButton.setGeometry(QtCore.QRect(530, 470, 121, 51))
         self.generateButton.setObjectName("generateButton")
         self.generateButton.clicked.connect(self.pressGenerateButton)
+        # Generator setup
+        self.generator_model = tf.keras.models.load_model('./gan_weights/generator_200e_20drop.h5')
+        self.gen_norm_value = 2173
+
+
 
         # Plot area elements
         self.plotLabel = QtWidgets.QLabel(self.centralwidget)
         self.plotLabel.setGeometry(QtCore.QRect(10, 110, 511, 411))
         self.plotLabel.setText("")
-        self.plotLabel.setPixmap(QtGui.QPixmap("test.png"))
+        # self.plotLabel.setPixmap(QtGui.QPixmap("test.png"))
         self.plotLabel.setScaledContents(True) # Fit to label
         self.plotLabel.setObjectName("plotLabel")
 
         # Plot variables
-        df = pd.read_csv("testingData/normal_valid.csv") # TEMP
-        arr = df.iloc[0][:-1] # TEMP
-        self.x_values = np.linspace(0, arr.shape[0],arr.shape[0]) # TEMP
-        self.y_values = arr  # TEMP
+        # df = pd.read_csv("testingData/normal_valid.csv") # TEMP
+        # arr = df.iloc[0][:-1] # TEMP
+        self.x_values = np.linspace(0, 187, 187)
+        self.y_values = np.linspace(0, 187, 187)
 
 
         # Encoder run-through
@@ -131,6 +141,13 @@ class Ui_MainWindow(object):
         self.sliderAdjust.setObjectName("sliderAdjust")
         self.sliderAdjust.valueChanged.connect(self.sliderAdjustValueChange)
 
+
+        self.smoothButton = QtWidgets.QPushButton(self.centralwidget)
+        self.smoothButton.setGeometry(QtCore.QRect(530, 200, 121, 51))
+        self.smoothButton.setObjectName("smoothButton")
+        self.smoothButton.setText("Smooth")
+        self.smoothButton.clicked.connect(self.pressSmoothButton)
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 26))
@@ -150,13 +167,22 @@ class Ui_MainWindow(object):
         self.verifyButton.setText(_translate("MainWindow", "Verify"))
 
     """
-    Call the Generator and generate a signal, plot the signal
+    Call the Generator and generate a signal from random noise, plot the signal
     """
     def pressGenerateButton(self):
         print("Pressed Generate")
-        # TODO: Call generator function
-
-        # TODO: Plot and display generator points
+        # TODO: Call generator function finalize?
+        seed = tf.random.normal([1, 47, 1])
+        ecg = self.generator_model(seed, training=False)
+        ecg = ecg.numpy()[0,0,:]
+        ecg = ecg[:187] * self.gen_norm_value
+        # Normalize values betwen [0-1] since that's what the encoder model expects
+        ecg = sklearn.preprocessing.minmax_scale(ecg, feature_range=(0, 1), axis=0, copy=True)
+        self.y_values = ecg # Send values to global
+        # self.y_values = ecg[0, 0, :] * self.gen_norm_value)
+        # fig = plt.figure(figsize=(4,3))
+        # plt.plot(self.ecg[0, 0, :] * self.gen_norm_value)
+        # plt.savefig('generator_test2.png')
         self.plotPoints()
 
     """
@@ -173,16 +199,34 @@ class Ui_MainWindow(object):
         test_values = np.expand_dims(test_values, axis=0)
         test_values = torch.from_numpy(test_values).float()
         encode_out = self.autoEncoder_model.Encoder(test_values)
-        # print("Encoded")
+        print("Encoded")
+        encode_1 = encode_out[0].detach().numpy() # (1,20)
+        encode_2 = encode_out[1].detach().numpy() # (1,20)
+        stack = np.append(encode_1, encode_2, axis=1) # (1,40)
+        # print(stack.shape)
+        stack = np.append(stack, encode_1[:,:7], axis=1) # (1,47) from first 7 rows of encode_1
+        stack = np.expand_dims(stack, axis=2) # (1,47,1)
+        stack = stack / np.linalg.norm(stack) # normalize because that's what the generator expects
 
-        # Decode
-        decode_out = self.autoEncoder_model.Decoder(encode_out[0], encode_out[1])
-        # print("Decoded shape before flip: " + str(decode_out.shape))
+        # Generate new ECG
+        verify_ecg = self.generator_model(tf.convert_to_tensor(stack), training=False)
+        verify_ecg = verify_ecg.numpy()[0, 0, :]
+        verify_ecg = verify_ecg[:187] * self.gen_norm_value
+        verify_ecg = sklearn.preprocessing.minmax_scale(verify_ecg, feature_range=(0, 1), axis=0, copy=True)
+        self.y_values = verify_ecg
+        self.plotPoints()
+        # print(stack.shape)
 
-        # Flip signal and stuff
-        decode_out = torch.flip(decode_out, dims=[1]), torch.log(F.softmax(encode_out[0], dim=1))
-        decode_out_forplot = decode_out[0].detach().numpy().flatten() # Convert to a numpy array
-        self.y_values = decode_out_forplot # Set global for plotting
+
+        # # Decode
+        # decode_out = self.autoEncoder_model.Decoder(encode_out[0], encode_out[1])
+        # # print("Decoded shape before flip: " + str(decode_out.shape))
+        #
+        # # Flip signal and stuff
+        # decode_out = torch.flip(decode_out, dims=[1]), torch.log(F.softmax(encode_out[0], dim=1))
+        # decode_out_forplot = decode_out[0].detach().numpy().flatten() # Convert to a numpy array
+        # self.y_values = decode_out_forplot # Set global for plotting
+
         # self.plotPoints()
 
         ##DEELELTLE
@@ -235,6 +279,11 @@ class Ui_MainWindow(object):
     def sliderAdjustValueChange(self):
         self.adjustAmt = self.sliderAdjust.value() * 0.1
         self.sliderAdjustLabel.setText("Inc/Dec Amount: " + str(self.adjustAmt))
+
+    def pressSmoothButton(self):
+        sigma = 3
+        self.y_values = scipy.ndimage.gaussian_filter1d(self.y_values, sigma)
+        self.plotPoints()
 
     """
     Take global x, y plot values, create and save a plt plot and show the plot on the plotLabel
