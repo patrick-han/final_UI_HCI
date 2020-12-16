@@ -142,7 +142,7 @@ def make_discriminator_model():
 
     return model
 
-
+# Source: https://github.com/josipd/torch-two-sample
 def pdist(sample_1, sample_2, norm=2, eps=1e-5):
     r"""Compute the matrix of all squared pairwise distances.
     Arguments
