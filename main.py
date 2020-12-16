@@ -12,6 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from gan_model import MMDStatistic
 
 # Generator Imports
 import tensorflow as tf
@@ -48,9 +49,9 @@ class Ui_MainWindow(object):
         self.plotLabel = QtWidgets.QLabel(self.centralwidget)
         self.plotLabel.setGeometry(QtCore.QRect(10, 110, 511, 411))
         self.plotLabel.setText("")
-        # self.plotLabel.setPixmap(QtGui.QPixmap("test.png"))
         self.plotLabel.setScaledContents(True) # Fit to label
         self.plotLabel.setObjectName("plotLabel")
+        self.plotTitle = ""
 
         # Plot variables
         # df = pd.read_csv("testingData/normal_valid.csv") # TEMP
@@ -160,6 +161,19 @@ class Ui_MainWindow(object):
         self.sliderSmooth.setObjectName("sliderSmooth")
         self.sliderSmooth.valueChanged.connect(self.sliderSmoothValueChange)
 
+        # Statistics elements
+        self.statisticsButton = QtWidgets.QPushButton(self.centralwidget)
+        self.statisticsButton.setGeometry(QtCore.QRect(580, 20, 121, 30))
+        self.statisticsButton.setObjectName("statisticsButton")
+        self.statisticsButton.setText("Statistics")
+        self.statisticsButton.clicked.connect(self.pressStatisticsButton)
+
+        self.statisticsLabel = QtWidgets.QLabel(self.centralwidget)
+        self.statisticsLabel.setGeometry(QtCore.QRect(530, 50, 300, 210))
+        self.statisticsLabel.setText("RMSE: \n PRD: \n MMD:")
+        self.statisticsLabel.setObjectName("statisticsLabel")
+        self.statisticsLabel.setAlignment(QtCore.Qt.AlignLeft)
+
 
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -192,6 +206,7 @@ class Ui_MainWindow(object):
         # Normalize values betwen [0-1] since that's what the encoder model expects
         ecg = sklearn.preprocessing.minmax_scale(ecg, feature_range=(0, 1), axis=0, copy=True)
         self.y_values = ecg # Send values to global
+        self.plotTitle = "Generated ECG Signal"
         self.plotPoints()
 
     """
@@ -222,6 +237,7 @@ class Ui_MainWindow(object):
         verify_ecg = verify_ecg[:187] * self.gen_norm_value
         verify_ecg = sklearn.preprocessing.minmax_scale(verify_ecg, feature_range=(0, 1), axis=0, copy=True)
         self.y_values = verify_ecg
+        self.plotTitle = "Verified ECG Signal"
         self.plotPoints()
         # print(stack.shape)
 
@@ -279,6 +295,38 @@ class Ui_MainWindow(object):
         self.sigma_smooth = self.sliderSmooth.value()
         self.smoothButton.setText("Smooth: " + str(self.sigma_smooth))
 
+    # Statistics Tests: https://github.com/MikhailMurashov/ecgGAN
+    def pressStatisticsButton(self):
+        mmd_sum, prd_sum, rmse_sum = [], [], []
+        real_data = pd.read_csv("testingData/normal_valid.csv").iloc[:,:187]
+        real_data = np.array(real_data)
+        for i in range(real_data.shape[0]):
+            real_ecg = real_data[i]
+            prd_sum.append(self.prd(real_ecg, self.y_values))
+            rmse_sum.append(self.rmse(real_ecg, self.y_values))
+            mmd_sum.append(self.mmd(real_ecg, self.y_values))
+        mmd_str = 'MMD:' + '\n' + f'mean={np.mean(mmd_sum):.4f}' + '\n' + f'min={np.min(mmd_sum):.4f}' + '\n' + f'max={np.max(mmd_sum):.4f}'
+        prd_str = 'PRD:' + '\n' + f'mean={np.mean(prd_sum):.4f}' + '\n' + f'min={np.min(prd_sum):.4f}' + '\n' + f'max={np.max(prd_sum):.4f}'
+        rmse_str = 'RMSE:' + '\n' + f'mean={np.mean(rmse_sum):.4f}' + '\n' + f'min={np.min(rmse_sum):.4f}' + '\n' + f'max={np.max(rmse_sum):.4f}'
+        self.statisticsLabel.setText(rmse_str + "\n" + prd_str + "\n" + mmd_str)
+
+    def rmse(self, targets, predictions):
+        return np.sqrt(np.mean((targets - predictions) ** 2))
+
+    def prd(self, targets, predictions):
+        s1 = np.sum((targets - predictions) ** 2)
+        s2 = np.sum(targets ** 2)
+        return np.sqrt(s1 / s2 * 100)
+
+    def mmd(self, targets, predictions):
+        mmd_stat = MMDStatistic(187, 187)
+        sample_target = torch.from_numpy(targets.reshape((187, 1)))
+        sample_pred = torch.from_numpy(predictions.reshape((187, 1)))
+
+        stat = mmd_stat(sample_target, sample_pred, [1.])
+        return (stat.item())
+
+
     """
     Take global x, y plot values, create and save a plt plot and show the plot on the plotLabel
     """
@@ -288,6 +336,7 @@ class Ui_MainWindow(object):
             color_arr[point] = (1,0,0) # Color selected point in red
         plt.scatter(self.x_values, self.y_values, c = color_arr)
         plt.plot(self.x_values, self.y_values)
+        plt.title(self.plotTitle)
         plt.savefig("generatedPlot.png")
         plt.close()
         self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
