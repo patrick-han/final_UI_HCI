@@ -43,18 +43,21 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
 
         # For cycling between NPY loaded plots
+        self.npy_plot_num = 0 # plot the 0th signal first
         self.loadedNPYFile = ""
+        self.loadedNPYarray = np.array([])
         self.prevNPYButton = QtWidgets.QPushButton(self.centralwidget)
         self.prevNPYButton.setGeometry(QtCore.QRect(0, 0, 40, 30))
         self.prevNPYButton.setObjectName("prevNPYButton")
         self.prevNPYButton.setText("Prev")
-        # self.prevNPYButton.clicked.connect(self.pressPrevNPYButton)
-        # self.upAdjustButton.setIcon(QtGui.QIcon('icons/up_arrow.png'))
+        self.prevNPYButton.clicked.connect(self.pressPrevNPYButton)
+
         self.nextNPYButton = QtWidgets.QPushButton(self.centralwidget)
         self.nextNPYButton.setGeometry(QtCore.QRect(40, 0, 40, 30))
         self.nextNPYButton.setObjectName("nextNPYButton")
         self.nextNPYButton.setText("Next")
-        # self.prevNPYButton.clicked.connect(self.pressNextNPYButton)
+        self.nextNPYButton.clicked.connect(self.pressNextNPYButton)
+
         self.loadedNPYLabel = QtWidgets.QLabel(self.centralwidget)
         self.loadedNPYLabel.setGeometry(QtCore.QRect(85, 0, 800, 22))
         self.loadedNPYLabel.setText("File loaded: " + str(self.loadedNPYFile))
@@ -261,23 +264,31 @@ class Ui_MainWindow(object):
         name = QtWidgets.QFileDialog.getOpenFileName(None, "Open File")#, os.getenv('HOME'))
         self.loadedNPYFile = name[0]
         self.loadedNPYLabel.setText("File loaded: " + str(self.loadedNPYFile))
-        loaded_np_arr = np.load(name[0])
+        self.loadedNPYarray = np.load(name[0]) # Load array
+        self.loadedNPYnum_plots = self.loadedNPYarray.shape[0]
+        print("Loaded: " + str(self.loadedNPYnum_plots) + " plots")
+        self.plotNPYLoadedPoints()
 
     """
     Plot loaded NPY points onto the main screen
     """
     def plotNPYLoadedPoints(self):
-        pass
-        # color_arr = [(0, 0, 1)] * 187  # Color all points in blue first
-        # for point in self.spreadPoints:
-        #     color_arr[point] = (1, 0, 0)  # Color selected point in red
-        # plt.scatter(self.x_values, self.y_values, c=color_arr)
-        # plt.plot(self.x_values, self.y_values)
-        # plt.title(self.plotTitle)
-        # plt.savefig("generatedPlot.png")
-        # plt.close()
-        # self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
+        plt.plot(self.loadedNPYarray[self.npy_plot_num])
+        self.plotTitle = "Loaded .npy File: " + str(self.npy_plot_num + 1) + " of " + str(self.loadedNPYnum_plots)
+        plt.title(self.plotTitle)
+        plt.savefig("generatedPlot.png")
+        plt.close()
+        self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
 
+    def pressPrevNPYButton(self):
+        if (self.npy_plot_num - 1) >= 0:
+            self.npy_plot_num -= 1
+            self.plotNPYLoadedPoints()
+
+    def pressNextNPYButton(self):
+        if (self.npy_plot_num + 1) < self.loadedNPYnum_plots:
+            self.npy_plot_num += 1
+            self.plotNPYLoadedPoints()
 
 
     def numFieldEdited(self):
