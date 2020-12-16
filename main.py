@@ -273,7 +273,7 @@ class Ui_MainWindow(object):
     Plot loaded NPY points onto the main screen
     """
     def plotNPYLoadedPoints(self):
-        plt.plot(self.loadedNPYarray[self.npy_plot_num])
+        plt.plot(self.loadedNPYarray[self.npy_plot_num], 'r')
         self.plotTitle = "Loaded .npy File: " + str(self.npy_plot_num + 1) + " of " + str(self.loadedNPYnum_plots)
         plt.title(self.plotTitle)
         plt.savefig("generatedPlot.png")
