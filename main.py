@@ -44,6 +44,16 @@ class Ui_MainWindow(object):
         self.generateManyButton.setText("Generate Batch")
         self.generateManyButton.clicked.connect(self.pressGenerateManyButton)
 
+        self.generateManyLabel = QtWidgets.QLabel(self.centralwidget)
+        self.generateManyLabel.setGeometry(QtCore.QRect(200, 530, 300, 22))
+        self.generateManyLabel.setText("# of signals to generate: " + str(self.amtToGenerate))
+        self.generateManyLabel.setObjectName("generateManyLabel")
+
+        self.generateNumField = QtWidgets.QLineEdit(self.centralwidget)
+        self.generateNumField.setGeometry(QtCore.QRect(140, 530, 60, 30))
+        self.generateNumField.setText(str(self.amtToGenerate))
+        self.generateNumField.editingFinished.connect(self.numFieldEdited)
+
 
         # Generator run-through
         self.generateButton = QtWidgets.QPushButton(self.centralwidget)
@@ -204,6 +214,12 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.generateButton.setText(_translate("MainWindow", "Generate"))
         self.verifyButton.setText(_translate("MainWindow", "Verify"))
+
+    def numFieldEdited(self):
+        num = int(self.generateNumField.text())
+        self.amtToGenerate = num
+        print(self.amtToGenerate)
+        self.generateManyLabel.setText("# of signals to generate: " + str(self.amtToGenerate))
 
     """
     Generate a certain number of samples based on the amount specified
