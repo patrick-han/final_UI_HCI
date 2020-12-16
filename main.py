@@ -216,10 +216,13 @@ class Ui_MainWindow(object):
         self.verifyButton.setText(_translate("MainWindow", "Verify"))
 
     def numFieldEdited(self):
-        num = int(self.generateNumField.text())
-        self.amtToGenerate = num
-        print(self.amtToGenerate)
-        self.generateManyLabel.setText("# of signals to generate: " + str(self.amtToGenerate))
+        if self.generateNumField.text().isdigit():
+            num = int(self.generateNumField.text())
+            self.amtToGenerate = num
+            print(self.amtToGenerate)
+            self.generateManyLabel.setText("# of signals to generate: " + str(self.amtToGenerate))
+        else:
+            print("please enter integer")
 
     """
     Generate a certain number of samples based on the amount specified
