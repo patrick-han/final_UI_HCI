@@ -114,13 +114,13 @@ class Ui_MainWindow(object):
         self.adjustAmt = 0.0
 
         self.upAdjustButton = QtWidgets.QPushButton(self.centralwidget)
-        self.upAdjustButton.setGeometry(QtCore.QRect(530, 130, 40, 30))
+        self.upAdjustButton.setGeometry(QtCore.QRect(530, 260, 40, 30))
         self.upAdjustButton.setObjectName("upAdjustButton")
         self.upAdjustButton.clicked.connect(self.pressUpAdjustButton)
         self.upAdjustButton.setIcon(QtGui.QIcon('icons/up_arrow.png'))
 
         self.downAdjustButton = QtWidgets.QPushButton(self.centralwidget)
-        self.downAdjustButton.setGeometry(QtCore.QRect(530, 170, 40, 30))
+        self.downAdjustButton.setGeometry(QtCore.QRect(530, 290, 40, 30))
         self.downAdjustButton.setObjectName("downAdjustButton")
         self.downAdjustButton.clicked.connect(self.pressDownAdjustButton)
         self.downAdjustButton.setIcon(QtGui.QIcon('icons/down_arrow.png'))
@@ -141,12 +141,26 @@ class Ui_MainWindow(object):
         self.sliderAdjust.setObjectName("sliderAdjust")
         self.sliderAdjust.valueChanged.connect(self.sliderAdjustValueChange)
 
-
+        # Smoothing elements
         self.smoothButton = QtWidgets.QPushButton(self.centralwidget)
-        self.smoothButton.setGeometry(QtCore.QRect(530, 200, 121, 51))
+        self.smoothButton.setGeometry(QtCore.QRect(580, 260, 121, 30))
         self.smoothButton.setObjectName("smoothButton")
-        self.smoothButton.setText("Smooth")
+        self.smoothButton.setText("Smooth: 1")
         self.smoothButton.clicked.connect(self.pressSmoothButton)
+
+        self.sigma_smooth = 1
+        self.sliderSmooth = QtWidgets.QSlider(self.centralwidget)
+        self.sliderSmooth.setGeometry(QtCore.QRect(580, 290, 121, 30))
+        self.sliderSmooth.setOrientation(QtCore.Qt.Horizontal)
+        self.sliderSmooth.setMinimum(1)
+        self.sliderSmooth.setMaximum(5)
+        self.sliderSmooth.setValue(1)
+        self.sliderSmooth.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self.sliderSmooth.setTickInterval(1)
+        self.sliderSmooth.setObjectName("sliderSmooth")
+        self.sliderSmooth.valueChanged.connect(self.sliderSmoothValueChange)
+
+
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -171,7 +185,6 @@ class Ui_MainWindow(object):
     """
     def pressGenerateButton(self):
         print("Pressed Generate")
-        # TODO: Call generator function finalize?
         seed = tf.random.normal([1, 47, 1])
         ecg = self.generator_model(seed, training=False)
         ecg = ecg.numpy()[0,0,:]
@@ -179,10 +192,6 @@ class Ui_MainWindow(object):
         # Normalize values betwen [0-1] since that's what the encoder model expects
         ecg = sklearn.preprocessing.minmax_scale(ecg, feature_range=(0, 1), axis=0, copy=True)
         self.y_values = ecg # Send values to global
-        # self.y_values = ecg[0, 0, :] * self.gen_norm_value)
-        # fig = plt.figure(figsize=(4,3))
-        # plt.plot(self.ecg[0, 0, :] * self.gen_norm_value)
-        # plt.savefig('generator_test2.png')
         self.plotPoints()
 
     """
@@ -203,7 +212,6 @@ class Ui_MainWindow(object):
         encode_1 = encode_out[0].detach().numpy() # (1,20)
         encode_2 = encode_out[1].detach().numpy() # (1,20)
         stack = np.append(encode_1, encode_2, axis=1) # (1,40)
-        # print(stack.shape)
         stack = np.append(stack, encode_1[:,:7], axis=1) # (1,47) from first 7 rows of encode_1
         stack = np.expand_dims(stack, axis=2) # (1,47,1)
         stack = stack / np.linalg.norm(stack) # normalize because that's what the generator expects
@@ -228,23 +236,6 @@ class Ui_MainWindow(object):
         # self.y_values = decode_out_forplot # Set global for plotting
 
         # self.plotPoints()
-
-        ##DEELELTLE
-        # plt.plot(self.x_values, self.y_values)
-        # plt.plot(self.x_values, decode_out_forplot)
-        # plt.savefig("generatedPlot.png")
-        # plt.close()
-        # self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
-
-        # # Plot original
-        # plt.plot(example.numpy().flatten())
-        # # Plot decoded
-        # plt.plot(decode_out[0].detach().numpy()[0])
-
-        # TODO: Call encoder on current signal
-        # encoderOutput = Encoder()
-        # TODO: Call generator on encoderOutput, modify global x, y values
-        # plotPoints()
 
     def slider1ValueChange(self):
         val = self.slider1.value() # Grab the slider value
@@ -281,9 +272,12 @@ class Ui_MainWindow(object):
         self.sliderAdjustLabel.setText("Inc/Dec Amount: " + str(self.adjustAmt))
 
     def pressSmoothButton(self):
-        sigma = 3
-        self.y_values = scipy.ndimage.gaussian_filter1d(self.y_values, sigma)
+        self.y_values = scipy.ndimage.gaussian_filter1d(self.y_values, self.sigma_smooth)
         self.plotPoints()
+
+    def sliderSmoothValueChange(self):
+        self.sigma_smooth = self.sliderSmooth.value()
+        self.smoothButton.setText("Smooth: " + str(self.sigma_smooth))
 
     """
     Take global x, y plot values, create and save a plt plot and show the plot on the plotLabel
