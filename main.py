@@ -228,6 +228,7 @@ class Ui_MainWindow(object):
                         ecg[index] += magnitude
                 elif operation.typename == "smooth":
                     sigma_magnitude = operation.val
+                    ecg = scipy.ndimage.gaussian_filter1d(ecg, sigma_magnitude)
                 else:
                     print("No operations found, generated " + str(self.amtToGenerate) + " # of signals")
             batch.append(ecg)
@@ -342,6 +343,8 @@ class Ui_MainWindow(object):
 
     def pressSmoothButton(self):
         self.y_values = scipy.ndimage.gaussian_filter1d(self.y_values, self.sigma_smooth)
+        op = Operation("smooth", self.sigma_smooth, [])
+        self.operations.append(op)
         self.plotPoints()
 
     def sliderSmoothValueChange(self):
