@@ -42,6 +42,26 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
+        # For cycling between NPY loaded plots
+        self.loadedNPYFile = ""
+        self.prevNPYButton = QtWidgets.QPushButton(self.centralwidget)
+        self.prevNPYButton.setGeometry(QtCore.QRect(0, 0, 40, 30))
+        self.prevNPYButton.setObjectName("prevNPYButton")
+        self.prevNPYButton.setText("Prev")
+        # self.prevNPYButton.clicked.connect(self.pressPrevNPYButton)
+        # self.upAdjustButton.setIcon(QtGui.QIcon('icons/up_arrow.png'))
+        self.nextNPYButton = QtWidgets.QPushButton(self.centralwidget)
+        self.nextNPYButton.setGeometry(QtCore.QRect(40, 0, 40, 30))
+        self.nextNPYButton.setObjectName("nextNPYButton")
+        self.nextNPYButton.setText("Next")
+        # self.prevNPYButton.clicked.connect(self.pressNextNPYButton)
+        self.loadedNPYLabel = QtWidgets.QLabel(self.centralwidget)
+        self.loadedNPYLabel.setGeometry(QtCore.QRect(85, 0, 800, 22))
+        self.loadedNPYLabel.setText("File loaded: " + str(self.loadedNPYFile))
+        self.loadedNPYLabel.setObjectName("loadedNPYLabel")
+
+
+
         # Operations save for generating multiple signals with similar operations after the generation phase
         self.operations = []
         self.amtToGenerate = 2 # Amount of generation
@@ -234,9 +254,31 @@ class Ui_MainWindow(object):
         self.actionLoad_npy.setText(QtCore.QCoreApplication.translate("MainWindow", u"Load npy", None))
         self.menuFile.setTitle(QtCore.QCoreApplication.translate("MainWindow", u"File", None))
 
+    """
+    Load .npy file
+    """
     def loadNPY(self):
         name = QtWidgets.QFileDialog.getOpenFileName(None, "Open File")#, os.getenv('HOME'))
-        arr = np.load(name[0])
+        self.loadedNPYFile = name[0]
+        self.loadedNPYLabel.setText("File loaded: " + str(self.loadedNPYFile))
+        loaded_np_arr = np.load(name[0])
+
+    """
+    Plot loaded NPY points onto the main screen
+    """
+    def plotNPYLoadedPoints(self):
+        pass
+        # color_arr = [(0, 0, 1)] * 187  # Color all points in blue first
+        # for point in self.spreadPoints:
+        #     color_arr[point] = (1, 0, 0)  # Color selected point in red
+        # plt.scatter(self.x_values, self.y_values, c=color_arr)
+        # plt.plot(self.x_values, self.y_values)
+        # plt.title(self.plotTitle)
+        # plt.savefig("generatedPlot.png")
+        # plt.close()
+        # self.plotLabel.setPixmap(QtGui.QPixmap("generatedPlot.png"))
+
+
 
     def numFieldEdited(self):
         if self.generateNumField.text().isdigit():
