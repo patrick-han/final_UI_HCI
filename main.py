@@ -32,6 +32,13 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 600)
+
+        # Top bar
+        self.actionLoad_npy = QtWidgets.QAction(MainWindow)
+        self.actionLoad_npy.setObjectName("actionLoad_npy")
+        self.actionLoad_npy.triggered.connect(self.loadNPY)
+
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
@@ -201,10 +208,19 @@ class Ui_MainWindow(object):
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 26))
         self.menubar.setObjectName("menubar")
+
+        self.menuFile = QtWidgets.QMenu(self.menubar) # FILE
+        self.menuFile.setObjectName("menuFile")  # FILE
+
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
+
+        self.menubar.addAction(self.menuFile.menuAction())   # FILE
+        self.menuFile.addAction(self.actionLoad_npy)   # FILE
+
+
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -214,6 +230,13 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.generateButton.setText(_translate("MainWindow", "Generate"))
         self.verifyButton.setText(_translate("MainWindow", "Verify"))
+
+        self.actionLoad_npy.setText(QtCore.QCoreApplication.translate("MainWindow", u"Load npy", None))
+        self.menuFile.setTitle(QtCore.QCoreApplication.translate("MainWindow", u"File", None))
+
+    def loadNPY(self):
+        name = QtWidgets.QFileDialog.getOpenFileName(None, "Open File")#, os.getenv('HOME'))
+        arr = np.load(name[0])
 
     def numFieldEdited(self):
         if self.generateNumField.text().isdigit():
