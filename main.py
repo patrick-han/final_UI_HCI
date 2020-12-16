@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from gan_model import MMDStatistic
+from operations import Operation
 
 # Generator Imports
 import tensorflow as tf
@@ -33,6 +34,16 @@ class Ui_MainWindow(object):
         MainWindow.resize(800, 600)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+
+        # Operations save for generating multiple signals with similar operations after the generation phase
+        self.operations = []
+        self.amtToGenerate = 2 # Amount of generation
+        self.generateManyButton = QtWidgets.QPushButton(self.centralwidget)
+        self.generateManyButton.setGeometry(QtCore.QRect(10, 530, 121, 30))
+        self.generateManyButton.setObjectName("generateManyButton")
+        self.generateManyButton.setText("Generate Batch")
+        self.generateManyButton.clicked.connect(self.pressGenerateManyButton)
+
 
         # Generator run-through
         self.generateButton = QtWidgets.QPushButton(self.centralwidget)
@@ -195,10 +206,44 @@ class Ui_MainWindow(object):
         self.verifyButton.setText(_translate("MainWindow", "Verify"))
 
     """
+    Generate a certain number of samples based on the amount specified
+    """
+    def pressGenerateManyButton(self):
+        batch = []
+        # Generate amtToGenerate # of signals
+        for iter in range(self.amtToGenerate):
+            # Generate a base signal
+            seed = tf.random.normal([1, 47, 1])
+            ecg = self.generator_model(seed, training=False)
+            ecg = ecg.numpy()[0, 0, :]
+            ecg = ecg[:187] * self.gen_norm_value
+            # Normalize values betwen [0-1] since that's what the encoder model expects
+            ecg = sklearn.preprocessing.minmax_scale(ecg, feature_range=(0, 1), axis=0, copy=True)
+
+            for operation in self.operations: # Apply operations to said signal
+                if operation.typename == "inc/dec":
+                    magnitude = operation.val
+                    indices = operation.extras
+                    for index in indices:
+                        ecg[index] += magnitude
+                elif operation.typename == "smooth":
+                    sigma_magnitude = operation.val
+                else:
+                    print("No operations found, generated " + str(self.amtToGenerate) + " # of signals")
+            batch.append(ecg)
+        batch = np.array(batch)
+        np.save("./batchGeneration/batch.npy", batch)
+
+
+
+
+
+    """
     Call the Generator and generate a signal from random noise, plot the signal
     """
     def pressGenerateButton(self):
         print("Pressed Generate")
+        self.operations = [] # Clear current operations slate
         seed = tf.random.normal([1, 47, 1])
         ecg = self.generator_model(seed, training=False)
         ecg = ecg.numpy()[0,0,:]
@@ -273,11 +318,19 @@ class Ui_MainWindow(object):
     def pressUpAdjustButton(self):
         for point in self.spreadPoints:
             self.y_values[point] += self.adjustAmt
+        # Add operation to operations list for more generation
+        if self.adjustAmt > 0:
+            op = Operation("inc/dec", self.adjustAmt, self.spreadPoints)
+            self.operations.append(op)
         self.plotPoints()
 
     def pressDownAdjustButton(self):
         for point in self.spreadPoints:
             self.y_values[point] -= self.adjustAmt
+        # Add operation to operations list for more generation
+        if self.adjustAmt > 0:
+            op = Operation("inc/dec", -1 * self.adjustAmt, self.spreadPoints)
+            self.operations.append(op)
         self.plotPoints()
 
     """
@@ -313,7 +366,7 @@ class Ui_MainWindow(object):
     def rmse(self, targets, predictions):
         return np.sqrt(np.mean((targets - predictions) ** 2))
 
-    def prd(self, targets, predictions):
+    def prd(self, targets, predictions): # percent root mean square difference
         s1 = np.sum((targets - predictions) ** 2)
         s2 = np.sum(targets ** 2)
         return np.sqrt(s1 / s2 * 100)
