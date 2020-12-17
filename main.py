@@ -79,6 +79,11 @@ class Ui_MainWindow(object):
         self.generateManyLabel.setText("# of signals to generate: " + str(self.amtToGenerate))
         self.generateManyLabel.setObjectName("generateManyLabel")
 
+        self.generateManyNotifLabel = QtWidgets.QLabel(self.centralwidget)
+        self.generateManyNotifLabel.setGeometry(QtCore.QRect(200, 560, 300, 22))
+        self.generateManyNotifLabel.setText("")
+        self.generateManyNotifLabel.setObjectName("generateManyNotifLabel")
+
         self.generateNumField = QtWidgets.QLineEdit(self.centralwidget)
         self.generateNumField.setGeometry(QtCore.QRect(140, 530, 60, 30))
         self.generateNumField.setText(str(self.amtToGenerate))
@@ -329,6 +334,7 @@ class Ui_MainWindow(object):
             batch.append(ecg)
         batch = np.array(batch)
         np.save("./batchGeneration/batch.npy", batch)
+        self.generateManyNotifLabel.setText("Generated!")
 
 
 
@@ -349,6 +355,7 @@ class Ui_MainWindow(object):
         self.y_values = ecg # Send values to global
         self.plotTitle = "Generated ECG Signal"
         self.plotPoints()
+        self.generateManyNotifLabel.setText("")
 
     """
     Call the Encoder on the current signal state, and then verify the signal with the Generator,
