@@ -18,10 +18,10 @@ project. We trained two models for this project.
 # User Interface
 The user interface was build in PyQT and contains several
 features for manipulating and examining signals:
-![Image](imgs/interface.png)
+![Image](imgs/interface.PNG)
 
 Example plots in the manipulation and verification process.
-![Image](imgs/three.png)
+![Image](imgs/three.PNG)
 
 
 # Results and Further Work
