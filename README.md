@@ -2,10 +2,11 @@
 Medical data is often highly sensitive and difficult to obtain since
 it involves collecting information from real people and patients.
 Thus, it is desirable to have some method of obtaining vast
-amounts of data without the risk of privacy invasion. In this
+amounts of data without the risk of privacy invasion.
+Specifically, for other machine learning applications, abnormal data is needed in order to train neural networks that may aid diagnoses, which are even more difficult to obtain given its lack of prevalence in real life. In this
 area, generative models have come a long way. In this project,
-we propose as user-interface and deep-learning pipeline for
-generating large amounts of user-manipulated ECG data. The
+we propose a user-interface and deep-learning pipeline for
+generating large amounts of user-manipulated ECG data, allowing the user to specify modifications and generate realistic ECG signals that retain similar manipulations. The
 target audience is medical professionals.
 
 [Video Link](https://youtu.be/9GxjO4-EdEE)
@@ -15,10 +16,23 @@ Below is the diagram of the main experimental portion of this
 project. We trained two models for this project.
 ![Image](imgs/pipeline.png)
 
+An autoencoder [1] and GAN [3] are trained with the real ECG signal MIT-BIH Arrhythmia Dataset [5]. The SynthECG pipeline is composed of the encoder of the autoencoder and the generator of the GAN, where the input into the encoder is the modified ECG signal from the UI, and the final output from the generator is the verified ECG signal with similar modification in place. The encoder encodes the modification into a lower dimensional latent space. The generator, which usually takes random noise as input, takes the encoder output and re-constructs it into a valid ECG signal, taking into account the biases encoded.
+
 # User Interface
 The user interface was build in PyQT and contains several
 features for manipulating and examining signals:
 ![Image](imgs/interface.PNG)
+
+Features include:
+* Load/export ECG signals
+* Generate/generate batch/verify signals
+* Signal previewer
+  * View individual signals from batch
+* Signal manipulation
+   * Select nodes and width
+   * Alter selected node values
+   * Smoothing w/ Gaussian filter
+
 
 Example plots in the manipulation and verification process.
 ![Image](imgs/three.PNG)
@@ -50,3 +64,5 @@ GAN Model:
 
 
 [4] https://github.com/MikhailMurashov/ecgGAN
+
+[5] G. Moody and R. Mark, “The impact of the MIT-BIH Arrhythmia Database,” IEEE Engineering in Medicine and Biology Magazine, vol. 20, no. 3, pp. 45–50, 2001. 
